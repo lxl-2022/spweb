@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.immoc.bilibili.dao.bilibiliDao">
+    <update id="updateUserInfos" parameterType="com.immoc.bilibili.domain.UserInfo">
+        update
+        t_user_info
+        set
+        <if test="nick != null and nick != '' ">
+            nick = #{nick},
+        </if>
+        <if test="avatar != null">
+            avatar = #{avatar},
+        </if>
+        <if test="sign != null">
+            sign = #{sign},
+        </if>
+        <if test="birth != null and birth != '' ">
+            birth = #{birth},
+        </if>
+        <if test="gender != null and gender != '' ">
+            gender = #{gender},
+        </if>
+        updateTime = #{updateTime}
+        where
+        userId = #{userId}
+    </update>
+
+    <select id="getUserbyPhone" parameterType="java.lang.String" resultType="com.immoc.bilibili.domain.User">
+        select * from t_user where phone=#{phone}
+    </select>
+
+    <insert id="adduser" parameterType="com.immoc.bilibili.domain.User" useGeneratedKeys="true" keyProperty="id">
+        insert  into t_user(phone,email,password,salt,createTime) values(#{phone},#{email},#{password},#{salt},#{createTime})
+    </insert>
+
+    <insert id="addUserInfo" parameterType="com.immoc.bilibili.domain.UserInfo">
+        insert  into t_user_info(userId,nick,avatar,sign,gender,birth,createTime) values(#{userId},#{nick},#{avatar},#{sign},#{gender},#{birth},#{createTime})
+    </insert>
+
+    <select id="getUserById" parameterType="java.lang.Long" resultType="com.immoc.bilibili.domain.User">
+        select * from t_user where id=#{id}
+    </select>
+
+    <select id="getUserInforById" parameterType="java.lang.Long" resultType="com.immoc.bilibili.domain.UserInfo">
+        select * from t_user_info where userid=#{id}
+    </select>
+
+    <select id="getUserInfoByUserIds" resultType="com.immoc.bilibili.domain.UserInfo">
+        select
+        *
+        from
+        t_user_info
+        where
+        1=1
+        <if test="followingIdSet != null and followingIdSet.size > 0">
+            and userId in
+            <foreach collection="followingIdSet" item = "userId" index="index" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="pageCountUserInfos" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+        count(1)
+        from
+        t_user_info
+        where
+        1=1
+        <if test="nick != null and nick != '' ">
+            and nick like '%${nick}%'
+        </if>
+    </select>
+
+    <select id="pageListUserInfos" parameterType="java.util.Map" resultType="com.immoc.bilibili.domain.UserInfo">
+        select
+        *
+        from
+        t_user_info
+        where
+        1=1
+        <if test="nick != null and nick != '' ">
+            and nick like '%${nick}%'
+        </if>
+        order by id desc
+        limit #{start}, #{limit}
+    </select>
+
+    <delete id="deleteRefreshTokenByUserId" parameterType="java.lang.Long">
+        delete from
+            t_refresh_token
+        where
+            userId = #{userId}
+    </delete>
+
+    <delete id="deleteRefreshToken">
+        delete from
+            t_refresh_token
+        where
+            refreshToken = #{refreshToken}
+            and userId = #{userId}
+    </delete>
+
+    <insert id="addRefreshToken">
+        insert into
+            t_refresh_token(
+                refreshToken,
+                userId,
+                createTime
+            )values(
+                #{refreshToken},
+                #{userId},
+                #{createTime}
+            )
+    </insert>
+
+    <select id="getRefreshTokenDetail" parameterType="java.lang.String" resultType="com.immoc.bilibili.domain.RefreshTokenDetail">
+        select
+            *
+        from
+            t_refresh_token
+        where
+            refreshToken = #{refreshToken}
+    </select>
+
+    <select id="batchGetUserInfoByUserIds"  resultType="com.immoc.bilibili.domain.UserInfo">
+        select
+            *
+        from
+            t_user_info
+        where
+            userId in
+            <foreach collection="userIdList" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+    </select>
+
+
+</mapper>
